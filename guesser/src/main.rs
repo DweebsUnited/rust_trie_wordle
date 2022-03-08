@@ -13,11 +13,13 @@ fn lookfor( t: &trie::Trie, word: &str ) {
 
 fn main( ) -> Result<(), io::Error> {
 
-    let mut t: trie::Trie = trie::io::from_wordlist( "resources/words_alpha.txt" )?;
+    // let t: trie::Trie = trie::io::from_wordlist( "resources/words_alpha.txt" )?;
+    // trie::io::write_text( &t, "resources/words_alpha.trie" );
 
-    t.add( "adieu" );
-    t.add( "rough" );
-    t.add( "roast" );
+    let t: trie::Trie = trie::io::read_text( "resources/wordle.trie" )?;
+
+    // let t: trie::Trie = trie::io::from_wordlist_if( "resources/wordle.txt", | s: &str | s.len( ) == 5 )?;
+    // trie::io::write_text( &t, "resources/wordle.trie" )?;
 
     lookfor( &t, "roast" );
     lookfor( &t, "adieu" );
