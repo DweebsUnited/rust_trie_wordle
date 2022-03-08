@@ -1,6 +1,6 @@
 use trie;
 
-use std::io::{ self, Write };
+use std::io::{ self };
 
 fn lookfor( t: &trie::Trie, word: &str ) {
     print!( "{}: ", word );
@@ -25,27 +25,48 @@ fn main( ) -> Result<(), io::Error> {
     lookfor( &t, "adieu" );
     lookfor( &t, "bitch" );
 
-    loop {
+    // loop {
 
-        print!( "> " );
+    //     print!( "> " );
 
-        io::stdout( ).flush( )?;
+    //     io::stdout( ).flush( )?;
 
-        let mut guess = String::new( );
+    //     let mut guess = String::new( );
 
-        io::stdin( )
-            .read_line( &mut guess )
-            .expect( "Failed to read line" );
+    //     io::stdin( )
+    //         .read_line( &mut guess )
+    //         .expect( "Failed to read line" );
 
-        let guess: &str = guess.trim( );
+    //     let guess: &str = guess.trim( );
 
-        if guess == "exit" {
-            break;
+    //     if guess == "exit" {
+    //         break;
+    //     }
+
+    //     lookfor( &t, guess );
+
+    // }
+
+
+    let mut exclusion_list: String = "adiubonrlh".to_string( );
+    // yellow_list = Vec( String )
+
+    let pred = | s: &str, used: u64, eowc: u64 | -> bool {
+
+        let l_c: char = s.chars( ).last( ).unwrap( );
+
+        if let Some( _ ) = exclusion_list.find( l_c ) {
+            return false;
         }
 
-        lookfor( &t, guess );
+        if eowc > 0 {
+            println!( "{}", s );
+        }
+        true
 
-    }
+    };
+
+    t.walk( pred );
 
     Ok(())
 
