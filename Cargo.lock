@@ -10,5 +10,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "stats"
+version = "0.1.0"
+dependencies = [
+ "trie",
+]
+
+[[package]]
 name = "trie"
 version = "0.1.0"

@@ -1,5 +1,5 @@
 [submodule "trie"]
 	path = trie
-	url = ./trie
+	url = https://github.com/DweebsUnited/trie.git
 [submodule "./trie"]
 	url = https://github.com/DweebsUnited/trie.git
