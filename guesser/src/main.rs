@@ -46,17 +46,50 @@ mod loading {
         Ok( stats )
 
     }
+
+    pub fn load_freqs<P: AsRef<Path>>( path: P ) -> Result<[f64; 26]> {
+
+        let f: File = File::open( path )?;
+        let lines: io::Lines<io::BufReader<File>> = io::BufReader::new( f ).lines( );
+
+        let mut stats = [0f64; 26];
+        let mut ldx = 0;
+
+        for line in lines {
+
+            if let Ok( freq ) = line {
+
+                let freqs = freq.trim( );
+
+                stats[ ldx ] = freq.parse::<f64>( ).expect( "Bad float parse in this file!" );
+
+                ldx += 1;
+
+            }
+        }
+
+        Ok( stats )
+
+    }
+
 }
 
-fn calc_probability( s: &str, probabilities: &[[f64; 26]; 5] ) -> f64 {
+fn calc_probability( s: &str, probabilities: &[[f64; 26]; 5], freqs: &[f64; 26] ) -> f64 {
 
     let mut p = 1f64;
 
     for ( ldx, l ) in s.chars( ).enumerate( ) {
 
         let ord = ( l as u8 ) - ( 'a' as u8 );
+        let mut duplicate_prob = 1f64;
 
-        p *= probabilities[ ldx ][ ord as usize ];
+        if ldx > 0 {
+            if s[ 0..ldx ].contains( l ) {
+                duplicate_prob *= 0.5;
+            }
+        }
+
+        p *= probabilities[ ldx ][ ord as usize ] * freqs[ ord as usize ] * duplicate_prob;
 
     }
 
@@ -76,6 +109,7 @@ fn main( ) -> Result<(), io::Error> {
     let mut guessed_list: String = String::new( );
 
     let letter_probabilities: [[f64; 26]; 5] = loading::load_probabilities( "resources/wordle_stats.csv" )?;
+    let letter_freq: [f64; 26] = loading::load_freqs( "resources/letterfreq.csv" )?;
 
     loop {
 
@@ -190,7 +224,7 @@ fn main( ) -> Result<(), io::Error> {
 
                 if printing {
 
-                    let word_probability: f64 = calc_probability( s, &letter_probabilities );
+                    let word_probability: f64 = calc_probability( s, &letter_probabilities, &letter_freq );
                     let word: ( String, f64 ) = ( s.to_string( ), word_probability );
 
                     let idx: usize = guesses_list.binary_search_by( |( _w, p )| p.total_cmp( &word_probability ) ).unwrap_or_else( |x| x );
@@ -228,7 +262,7 @@ fn main( ) -> Result<(), io::Error> {
             // Keep only 5 letter words
             if s.len( ) == 5 && eowc > 0 {
 
-                let word_probability: f64 = calc_probability( s, &letter_probabilities );
+                let word_probability: f64 = calc_probability( s, &letter_probabilities, &letter_freq );
                 let word: ( String, f64 ) = ( s.to_string( ), word_probability );
 
                 let idx: usize = elim_guesses_list.binary_search_by( |( _w, p )| p.total_cmp( &word_probability ) ).unwrap_or_else( |x| x );
@@ -250,12 +284,12 @@ fn main( ) -> Result<(), io::Error> {
         t.walk( &mut elim_guess_func );
 
         println!( "Best guesses:" );
-        for ( w, p ) in guesses_list {
+        for ( w, p ) in guesses_list.iter( ).rev( ) {
             println!( "  {}: {}", w, p );
         }
 
         println!( "Best elimination guesses:" );
-        for ( w, p ) in elim_guesses_list {
+        for ( w, p ) in elim_guesses_list.iter( ).rev( ) {
             println!( "  {}: {}", w, p );
         }
 
